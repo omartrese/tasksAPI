@@ -17,8 +17,13 @@ tasksRouter.get('/api/tasks', (req, res) => {
 });
 
 tasksRouter.post('/api/tasks', (req, res) => {
+
     const id = testTasks.length + 1;
+    const currentDate = Date.now();
+    const dateString = new Date(currentDate);
+
     try {
+
         const { name, description } = req.body;
 
         if (!name || !description) {
@@ -28,13 +33,17 @@ tasksRouter.post('/api/tasks', (req, res) => {
         const task = {
             name,
             description,
+            isCompleted: false,
+            createdAt: dateString.toISOString().split('.')[0].slice(0, 16),
             id
         };
         testTasks.push(task);
+
         res.status(201).json({ message: 'Task created', task, redirectUrl: 'http://localhost:8000/api/tasks' });
+
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Internal server error' });
+        // console.log(error);
+        res.status(500).json({ error });
     }
 
 });
