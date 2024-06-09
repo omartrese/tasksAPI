@@ -4,7 +4,6 @@ import { database } from "../db.js";
 
 const tasksRouter = express.Router();
 
-// Middleware para analizar los cuerpos de las solicitudes
 tasksRouter.use(express.json());
 tasksRouter.use(express.urlencoded({ extended: false }));
 
@@ -13,9 +12,7 @@ tasksRouter.get('/api', (req, res) => res.redirect('/'));
 tasksRouter.get('/api/tasks', (req, res) => {
     try {
         database.all("SELECT * FROM tasks", [], (err, rows) => {
-            if (err) {
-                throw err;
-            }
+            if (err) return console.log(err.message);
 
             const tasks = rows.map(row => ({
                 ...row,
