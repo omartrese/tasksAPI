@@ -1,4 +1,6 @@
 import express from "express";
+import passport from "passport";
+import { isAuthenticated } from "../lib/checkValidation.js";
 import { database } from "../db.js";
 // import testTasks from "../dataTest/testTasks.js";
 
@@ -9,7 +11,7 @@ tasksRouter.use(express.urlencoded({ extended: false }));
 
 tasksRouter.get('/api', (req, res) => res.redirect('/'));
 
-tasksRouter.get('/api/tasks', (req, res) => {
+tasksRouter.get('/api/tasks', isAuthenticated, (req, res) => {
     try {
         database.all("SELECT * FROM tasks", [], (err, rows) => {
             if (err) return console.log(err.message);
