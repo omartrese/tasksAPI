@@ -13,7 +13,9 @@ tasksRouter.get('/api', (req, res) => res.redirect('/'));
 
 tasksRouter.get('/api/tasks', isAuthenticated, (req, res) => {
     try {
-        database.all("SELECT * FROM tasks", [], (err, rows) => {
+        const { userId } = req.user;
+
+        database.all("SELECT * FROM tasks WHERE userOwner = ?", [userId], (err, rows) => {
             if (err) return console.log(err.message);
 
             const tasks = rows.map(row => ({
@@ -31,6 +33,7 @@ tasksRouter.get('/api/tasks', isAuthenticated, (req, res) => {
 
 tasksRouter.post('/api/tasks', (req, res) => {
 
+    const { userId } = req.user;
     const currentDate = Date.now();
     const dateString = new Date(currentDate).toISOString().split('.')[0].slice(0, 16);
 
@@ -38,31 +41,66 @@ tasksRouter.post('/api/tasks', (req, res) => {
         const name = req.body.name || "untitled";
         const description = req.body.description || "new Task";
 
-        const query = `INSERT INTO tasks (name, description, isCompleted, createdAt) VALUES (?, ?, ?, ?)`;
-        const params = [name, description, 0, dateString];
+        const query = `INSERT INTO tasks (name, description, isCompleted, createdAt, userOwner) VALUES (?, ?, ?, ?, ?)`;
+        const params = [name, description, 0, dateString, userId];
 
         database.run(query, params, (err) => {
 
-            if(err) return console.log(err);
+            if (err) return console.log(err);
 
             const task = {
                 name,
                 description,
                 isCompleted: false,
-                createdAt: dateString
+                createdAt: dateString,
+                userOwner: userId,
             };
 
-            res.status(201).json({message: "task created successfully!", task}); 
+            res.status(201).json({ message: "task created successfully!", task });
 
         })
 
         // res.status(201).json({ message: 'Task created', task, redirectUrl: 'http://localhost:8000/api/tasks' });
 
     } catch (error) {
-        console.log(error);
-        res.status(500);
+        res.status(500).json({ error: "You need to log in to create tasks" });
     }
 
 });
+
+tasksRouter.put('/api/tasks/:id', (req, res) => {
+    // res.json({message: "actualizaste en el id " + req.params.id});
+    const { userId } = req.user;
+    const { id } = req.params;
+    console.log(id);
+
+    // try {
+    //     const name = req.body.name || "untitled";
+    //     const description = req.body.description || "new Task";
+
+    //     console.log(name + "\n" + description);
+
+    //     const query = `UPDATE tasks SET name = ?, description = ? WHERE id = ? AND userOwner = ?`
+        
+    //     const params = [name, description, id, userId];
+
+    //     database.run(query, params, (err) => {
+
+    //         if (err) return console.log(err);
+
+    //         const task = {
+    //             name,
+    //             description,
+    //         };
+
+    //         res.status(201).json({ message: "task edited successfully!", task });
+
+    //     })
+
+    // } catch (error) {
+    //     console.log("error updating task\n\n\n");
+    //     console.log(error);
+    // }
+})
 
 export default tasksRouter;

@@ -12,7 +12,8 @@ authRouter.use(passport.session());
 
 
 authRouter.get('/api/signup', (req, res) => res.json({ message: "pagina de registro (hacer petición tipo POST con datos: name, username y password)" }));
-authRouter.get('/api/login', (req, res) => res.json({ message: "pagina de inicio de sesión (hacer petición tipo POST con datos: username y password)" }));
+authRouter.get('/api/login', (req, res) => res.json({ message: "pagina de inicio de sesión (hacer petición tipo post con datos: username y password)" }));
+
 
 authRouter.post('/api/signup', async (req, res) => {
 
@@ -23,13 +24,13 @@ authRouter.post('/api/signup', async (req, res) => {
 
     try {
 
-        if (!userId || !password) return res.status(400).json({ message: "UserId and password are required " });
+        if (!userId || !password) return res.status(400).json({ error: "UserId and password are required " });
 
         if (!username) username = userId;
 
         await database.all("SELECT * FROM users WHERE userId = ?", userId, (err, results) => {
             if (err) {
-                res.status(402).json({ "error": err.message });
+                res.status(402).json({ error: err.message });
                 return;
             }
 
@@ -39,14 +40,15 @@ authRouter.post('/api/signup', async (req, res) => {
 
         await database.run('INSERT INTO users (username, userId, password) VALUES (?, ?, ?)', [username, userId, hashPasswd], (results, err) => {
 
-            if (userIdExists) return res.status(400).json({ message: "userId Already exists" });
+            if (userIdExists) return res.status(400).json({ error: "userId Already exists" });
 
-            if (err) return res.status(400).json({ message: "Error creating user" });
+            if (err) return res.status(400).json({ error: "Error creating user" });       
 
             return res.status(201).json({ message: "User created successfully!", redirectUrl: 'http://localhost:8000/api/login' });
 
 
         });
+
 
     } catch (err) {
         return console.error(err);
@@ -57,7 +59,15 @@ authRouter.post('/api/signup', async (req, res) => {
 })
 
 authRouter.post('/api/login', passport.authenticate('local.login'), (req, res) => {
-    return res.json({ message: 'You are logged in successfully!.', user: req.user, tasks: 'http://localhost:8000/api/tasks'});
+    // Establecer la cookie con el userId
+    return res.json({ message: 'You are logged in successfully!', user: req.user, tasks: 'http://localhost:8000/api/tasks' });
 });
+
+authRouter.post('/api/logout', (req, res, next) => {
+    req.logout((err) => {
+        if (err) { return next(err); }
+        res.redirect('/api/login');
+    });
+})
 
 export { authRouter };

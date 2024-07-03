@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 import connectSqlite3 from "connect-sqlite3";
 import cors from "cors";
 import passport from "passport";
@@ -18,6 +19,8 @@ app.use(cors({
     origin: "http://localhost:5500", // URL de tu frontend
     credentials: true
 }));
+
+app.use(cookieParser());
 
 app.use(session({
     secret: "nodeTasksAPI",
