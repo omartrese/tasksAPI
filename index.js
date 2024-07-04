@@ -20,6 +20,11 @@ app.use(cors({
     credentials: true
 }));
 
+app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    next();
+ });
+
 app.use(cookieParser());
 
 app.use(session({
@@ -27,6 +32,7 @@ app.use(session({
     name: 'user_ID',
     resave: false,
     saveUninitialized: false,
+    cookie: { secure: false },
     store: new SQLiteStore({ db: "database.db", dir: "./" }),
 
 }));
